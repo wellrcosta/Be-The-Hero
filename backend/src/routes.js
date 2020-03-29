@@ -31,7 +31,11 @@ routes.post(
 
 routes.get('/ongs', OngController.index);
 
-routes.post('/sessions', SessionController.create);
+routes.post('/sessions', celebrate({
+	[Segments.BODY]: Joi.object({
+		id: Joi.string().required().length(8)
+	})
+}),SessionController.create);
 
 routes.get(
 	'/incidents',
@@ -54,7 +58,6 @@ routes.post(
 			description: Joi.string().required(),
 			value: Joi.number()
 				.required()
-				.min(1)
 		})
 	}),
 	IncidentController.create
