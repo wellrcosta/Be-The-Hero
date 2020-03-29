@@ -1,15 +1,15 @@
-const express = require("express");
-const { celebrate, Joi, Segments } = require("celebrate");
+const express = require('express');
+const { celebrate, Joi, Segments } = require('celebrate');
 
-const OngController = require("./controllers/OngController");
-const IncidentController = require("./controllers/IncidentController");
-const ProfileController = require("./controllers/ProfileController");
-const SessionController = require("./controllers/SessionController");
+const OngController = require('./controllers/OngController');
+const IncidentController = require('./controllers/IncidentController');
+const ProfileController = require('./controllers/ProfileController');
+const SessionController = require('./controllers/SessionController');
 
 const routes = express.Router();
 
 routes.post(
-	"/ongs",
+	'/ongs',
 	celebrate({
 		[Segments.BODY]: Joi.object().keys({
 			name: Joi.string().required(),
@@ -28,12 +28,13 @@ routes.post(
 	}),
 	OngController.create
 );
-routes.get("/ongs", OngController.index);
 
-routes.post("/sessions", SessionController.create);
+routes.get('/ongs', OngController.index);
+
+routes.post('/sessions', SessionController.create);
 
 routes.get(
-	"/incidents",
+	'/incidents',
 	celebrate({
 		[Segments.QUERY]: Joi.object().keys({
 			page: Joi.number()
@@ -43,7 +44,7 @@ routes.get(
 );
 
 routes.post(
-	"/incidents",
+	'/incidents',
 	celebrate({
 		[Segments.HEADERS]: Joi.object({
 			authorization: Joi.string().required()
@@ -60,7 +61,7 @@ routes.post(
 );
 
 routes.delete(
-	"/incidents/:id",
+	'/incidents/:id',
 	celebrate({
 		[Segments.PARAMS]: Joi.object().keys({
 			id: Joi.number().required()
@@ -70,7 +71,7 @@ routes.delete(
 );
 
 routes.get(
-	"/profile",
+	'/profile',
 	celebrate({
 		[Segments.HEADERS]: Joi.object({
 			authorization: Joi.string().required()

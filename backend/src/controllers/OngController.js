@@ -1,9 +1,9 @@
-const connection = require("../database/connection");
-const uniqueID = require("../utils/generateUniqueID");
+const connection = require('../database/connection');
+const uniqueID = require('../utils/generateUniqueID');
 
 module.exports = {
 	async index(request, response) {
-		const ongs = await connection("ongs").select("*");
+		const ongs = await connection('ongs').select('*');
 
 		return response.json(ongs);
 	},
@@ -13,7 +13,7 @@ module.exports = {
 
 		const id = uniqueID();
 
-		await connection("ongs").insert({
+		await connection('ongs').insert({
 			id,
 			name,
 			email,
