@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -7,6 +8,7 @@ import { TopNav } from '@/components/top-nav';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiFetch } from '@/lib/api';
+import { getCachedMe, isAdmin } from '@/lib/me';
 
 type Organization = {
   id: string;
@@ -20,10 +22,15 @@ type Organization = {
 type Page<T> = { items: T[]; page: { skip: number; take: number; total: number } };
 
 export default function OrganizationsPage() {
+  const me = getCachedMe();
+  const admin = isAdmin(me);
+
   const [items, setItems] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!admin) return;
+
     (async () => {
       setLoading(true);
       try {
@@ -38,7 +45,7 @@ export default function OrganizationsPage() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [admin]);
 
   return (
     <div>
@@ -46,7 +53,18 @@ export default function OrganizationsPage() {
       <div className="p-6">
         <h1 className="text-xl font-semibold mb-4">Organizations</h1>
 
-        {loading ? (
+        {!admin ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Access denied</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                You need ADMIN role to view organizations.
+              </p>
+            </CardContent>
+          </Card>
+        ) : loading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i}>
@@ -76,7 +94,11 @@ export default function OrganizationsPage() {
             {items.map((o) => (
               <Card key={o.id}>
                 <CardHeader>
-                  <CardTitle className="text-base">{o.name}</CardTitle>
+                  <CardTitle className="text-base">
+                    <Link className="underline" href={`/organizations/${o.id}`}>
+                      {o.name}
+                    </Link>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm">
                   <p>Email: {o.email}</p>
