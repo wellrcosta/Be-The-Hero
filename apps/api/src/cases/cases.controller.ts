@@ -9,9 +9,21 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsIn, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { Roles } from '../auth/roles.decorator';
 import { serializeCase, serializeOrganization } from '../common/serializers';
 import { CasesService } from './cases.service';
@@ -150,7 +162,10 @@ export class CasesController {
   @Roles('ADMIN')
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update case status (ADMIN)' })
-  async updateStatus(@Param('id') id: string, @Body() dto: UpdateCaseStatusDto) {
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateCaseStatusDto,
+  ) {
     const updated = await this.cases.updateStatus(id, dto.status);
     return {
       ...serializeCase(updated),

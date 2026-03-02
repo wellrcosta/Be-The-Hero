@@ -20,7 +20,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiFetch } from '@/lib/api';
-import { getCachedMe, isAdmin } from '@/lib/me';
+import { isAdmin } from '@/lib/me';
+import { useMe } from '@/hooks/use-me';
 
 type CaseItem = {
   id: string;
@@ -37,8 +38,8 @@ export default function CaseDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 
-  const me = getCachedMe();
-  const admin = isAdmin(me);
+  const { me, loading: loadingMe } = useMe();
+  const admin = !loadingMe && isAdmin(me);
 
   const [item, setItem] = useState<CaseItem | null>(null);
 

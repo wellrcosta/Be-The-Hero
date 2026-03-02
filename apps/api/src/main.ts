@@ -8,13 +8,17 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   // Fail-fast in production
   if (process.env.NODE_ENV === 'production') {
-    if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is required in production');
-    if (!process.env.CORS_ORIGINS) throw new Error('CORS_ORIGINS is required in production');
+    if (!process.env.JWT_SECRET)
+      throw new Error('JWT_SECRET is required in production');
+    if (!process.env.CORS_ORIGINS)
+      throw new Error('CORS_ORIGINS is required in production');
   }
 
   const app = await NestFactory.create(AppModule);
 
-  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3001,http://127.0.0.1:3001')
+  const corsOrigins = (
+    process.env.CORS_ORIGINS ?? 'http://localhost:3001,http://127.0.0.1:3001'
+  )
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
@@ -49,4 +53,7 @@ async function bootstrap() {
   await app.listen(process.env.PORT ?? 3000);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

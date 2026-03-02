@@ -1,6 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseMoneyToCents } from '../common/money';
+import type { Prisma } from '../generated/prisma/client';
 
 export type CaseStatus = 'OPEN' | 'CLOSED';
 
@@ -39,7 +44,7 @@ export class CasesService {
   }) {
     const { skip, take, status, organizationId } = params;
 
-    const where: any = {};
+    const where: Prisma.CaseWhereInput = {};
     if (status) where.status = status;
     if (organizationId) where.organizationId = organizationId;
 
@@ -82,7 +87,7 @@ export class CasesService {
     const existing = await this.prisma.case.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Case not found');
 
-    const updateData: any = {
+    const updateData: Prisma.CaseUpdateInput = {
       title: data.title,
       description: data.description,
     };

@@ -20,6 +20,10 @@ export function setCachedMe(me: Me) {
   window.localStorage.setItem(KEY, JSON.stringify(me));
 }
 
+export function clearCachedMe() {
+  window.localStorage.removeItem(KEY);
+}
+
 export async function fetchAndCacheMe() {
   const res = await apiFetch('/me');
   const me = (await res.json()) as Me;

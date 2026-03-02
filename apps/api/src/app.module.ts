@@ -25,12 +25,14 @@ import { RequestIdInterceptor } from './common/logging.interceptor';
         customProps: (req) => ({ requestId: req.headers['x-request-id'] }),
       },
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60_000,
-        limit: 120,
-      },
-    ]),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60,
+          limit: 120,
+        },
+      ],
+    }),
     PrismaModule,
     AuthModule,
     UsersModule,

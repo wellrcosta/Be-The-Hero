@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiFetch } from '@/lib/api';
-import { getCachedMe, isAdmin } from '@/lib/me';
+import { isAdmin } from '@/lib/me';
+import { useMe } from '@/hooks/use-me';
 
 type Organization = {
   id: string;
@@ -23,8 +24,8 @@ type Organization = {
 type Page<T> = { items: T[]; page: { skip: number; take: number; total: number } };
 
 export default function OrganizationsPage() {
-  const me = getCachedMe();
-  const admin = isAdmin(me);
+  const { me, loading: loadingMe } = useMe();
+  const admin = !loadingMe && isAdmin(me);
 
   const [items, setItems] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(false);

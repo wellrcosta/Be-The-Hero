@@ -19,8 +19,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { apiFetch } from '@/lib/api';
-import { getCachedMe, isAdmin } from '@/lib/me';
+import { isAdmin } from '@/lib/me';
+import { useMe } from '@/hooks/use-me';
 
 type Organization = {
   id: string;
@@ -45,13 +47,15 @@ export default function OrganizationDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 
-  const me = getCachedMe();
-  const admin = isAdmin(me);
+  const { me, loading: loadingMe } = useMe();
+  const admin = !loadingMe && isAdmin(me);
 
   const [org, setOrg] = useState<Organization | null>(null);
   const [cases, setCases] = useState<CaseItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   async function load() {
+    setLoading(true);
     try {
       const res = await apiFetch(`/organizations/${id}`);
       setOrg((await res.json()) as Organization);
@@ -63,6 +67,8 @@ export default function OrganizationDetailPage() {
       toast.error('Failed to load organization', {
         description: err instanceof Error ? err.message : String(err),
       });
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -115,7 +121,17 @@ export default function OrganizationDetailPage() {
           ) : null}
         </div>
 
-        {org ? (
+        {loading ? (
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-5 w-2/3" />
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-4 w-1/3" />
+            </CardContent>
+          </Card>
+        ) : org ? (
           <Card>
             <CardHeader>
               <CardTitle className="text-base">{org.name}</CardTitle>
@@ -135,7 +151,12 @@ export default function OrganizationDetailPage() {
             <CardTitle className="text-base">Cases</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            {cases.length === 0 ? (
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-2/3" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ) : cases.length === 0 ? (
               <p className="text-muted-foreground">No cases for this organization.</p>
             ) : (
               <ul className="space-y-1">

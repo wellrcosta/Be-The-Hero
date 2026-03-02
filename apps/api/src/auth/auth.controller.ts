@@ -21,8 +21,10 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  @ApiOperation({ summary: 'Login with email/password and receive a JWT access token' })
+  @Throttle({ default: { limit: 10, ttl: 60 } })
+  @ApiOperation({
+    summary: 'Login with email/password and receive a JWT access token',
+  })
   @ApiBearerAuth()
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto.email, dto.password);
