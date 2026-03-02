@@ -4,6 +4,7 @@ import { Throttle } from '@nestjs/throttler';
 import { IsEmail, IsString, MinLength } from 'class-validator';
 import type { Request, Response } from 'express';
 
+import type { JwtPayload } from './jwt.strategy';
 import { Public } from './public.decorator';
 import { AuthService } from './auth.service';
 import { refreshCookieOptions } from './refresh-tokens';
@@ -75,6 +76,13 @@ export class AuthController {
     if (token) await this.auth.logout(token);
 
     res.clearCookie('refresh_token', refreshCookieOptions());
+    return { ok: true };
+  }
+
+  @Post('logout-all')
+  @ApiOperation({ summary: 'Logout from all devices (JWT required)' })
+  async logoutAll(@Req() req: Request & { user?: JwtPayload }) {
+    await this.auth.logoutAll(req.user!.sub);
     return { ok: true };
   }
 }

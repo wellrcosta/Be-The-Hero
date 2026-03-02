@@ -5,14 +5,14 @@ import cookieParser from 'cookie-parser';
 import { Logger as PinoLogger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { requireInProduction } from './config/env';
 
 async function bootstrap() {
   // Fail-fast in production
   if (process.env.NODE_ENV === 'production') {
-    if (!process.env.JWT_SECRET)
-      throw new Error('JWT_SECRET is required in production');
-    if (!process.env.CORS_ORIGINS)
-      throw new Error('CORS_ORIGINS is required in production');
+    requireInProduction('JWT_SECRET');
+    requireInProduction('CORS_ORIGINS');
+    requireInProduction('REFRESH_TOKEN_PEPPER');
   }
 
   const app = await NestFactory.create(AppModule);

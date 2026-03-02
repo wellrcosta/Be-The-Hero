@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../prisma/prisma.service';
 import { generateRefreshToken, hashRefreshToken } from './refresh-tokens';
+import { PinoLogger } from 'nestjs-pino';
 
 const ACCESS_TOKEN_TTL_SECONDS = Number(
   process.env.ACCESS_TOKEN_TTL_SECONDS ?? '900',
@@ -21,13 +22,19 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
-  ) {}
+    private logger: PinoLogger,
+  ) {
+    this.logger.setContext(AuthService.name);
+  }
 
   private async validateUser(email: string, password: string) {
     const emailNorm = email.trim().toLowerCase();
 
     const user = await this.prisma.user.findUnique({ where: { emailNorm } });
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) {
+      this.logger.warn({ emailNorm }, 'auth.login.invalid_email');
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     if (user.status !== 'ACTIVE') {
       throw new ForbiddenException('User is disabled');
@@ -57,6 +64,11 @@ export class AuthService {
         },
       });
 
+      this.logger.warn(
+        { userId: user.id, emailNorm, attempts, lockedUntil },
+        'auth.login.invalid_password',
+      );
+
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -68,6 +80,8 @@ export class AuthService {
         lastLoginAt: new Date(),
       },
     });
+
+    this.logger.info({ userId: user.id }, 'auth.login.success');
 
     return user;
   }
@@ -156,9 +170,23 @@ export class AuthService {
   async logout(refreshToken: string) {
     const tokenHash = hashRefreshToken(refreshToken);
 
-    await this.prisma.refreshToken.updateMany({
+    const result = await this.prisma.refreshToken.updateMany({
       where: { tokenHash, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+
+    this.logger.info({ revoked: result.count }, 'auth.logout.revoked');
+  }
+
+  async logoutAll(userId: string) {
+    const result = await this.prisma.refreshToken.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+
+    this.logger.info(
+      { userId, revoked: result.count },
+      'auth.logout_all.revoked',
+    );
   }
 }
