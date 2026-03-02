@@ -33,7 +33,7 @@ export default function NewOrganizationPage() {
     setLoading(true);
 
     try {
-      await apiFetch('/organizations', {
+      const res = await apiFetch('/organizations', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -47,8 +47,10 @@ export default function NewOrganizationPage() {
         }),
       });
 
+      const created = (await res.json()) as { id: string };
+
       toast.success('Organization created');
-      router.push('/');
+      router.push(`/organizations/${created.id}`);
     } catch (err) {
       toast.error('Failed to create organization', {
         description: err instanceof Error ? err.message : String(err),

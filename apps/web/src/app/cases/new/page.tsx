@@ -10,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api';
-import { getToken } from '@/lib/auth';
 
 type Organization = {
   id: string;
@@ -37,11 +36,10 @@ export default function NewCasePage() {
 
     (async () => {
       try {
-        const res = await apiFetch('/organizations?skip=0&take=100', {
-        });
-        const data = (await res.json()) as Organization[];
-        setOrgs(data);
-        if (data[0]) setOrganizationId(data[0].id);
+        const res = await apiFetch('/organizations?skip=0&take=100');
+        const data = (await res.json()) as { items: Organization[] };
+        setOrgs(data.items);
+        if (data.items[0]) setOrganizationId(data.items[0].id);
       } catch (err) {
         toast.error('Failed to load organizations', {
           description: err instanceof Error ? err.message : String(err),
@@ -61,7 +59,7 @@ export default function NewCasePage() {
     setLoading(true);
 
     try {
-      await apiFetch('/cases', {
+      const res = await apiFetch('/cases', {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -74,8 +72,10 @@ export default function NewCasePage() {
         }),
       });
 
+      const created = (await res.json()) as { id: string };
+
       toast.success('Case created');
-      router.push('/');
+      router.push(`/cases/${created.id}`);
     } catch (err) {
       toast.error('Failed to create case', {
         description: err instanceof Error ? err.message : String(err),

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -129,7 +130,12 @@ export default function HomePage() {
                   <p className="text-sm text-muted-foreground">{c.description}</p>
                   <p className="text-sm">Value: {c.value}</p>
                   <p className="text-sm">Status: {c.status}</p>
-                  <p className="text-sm">Org: {c.organization?.name}</p>
+                  <p className="text-sm">
+                    Org:{' '}
+                    <Link className="underline" href={`/organizations/${c.organization?.id}`}>
+                      {c.organization?.name}
+                    </Link>
+                  </p>
 
                   {c.status === 'OPEN' ? (
                     <AlertDialog>

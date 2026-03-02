@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -168,13 +169,22 @@ export default function CasesPage() {
             {items.map((c) => (
               <Card key={c.id}>
                 <CardHeader>
-                  <CardTitle className="text-base">{c.title}</CardTitle>
+                  <CardTitle className="text-base">
+                    <Link className="underline" href={`/cases/${c.id}`}>
+                      {c.title}
+                    </Link>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <p className="text-sm text-muted-foreground">{c.description}</p>
                   <p className="text-sm">Value: {c.value}</p>
                   <p className="text-sm">Status: {c.status}</p>
-                  <p className="text-sm">Org: {c.organization?.name}</p>
+                  <p className="text-sm">
+                    Org:{' '}
+                    <Link className="underline" href={`/organizations/${c.organization?.id}`}>
+                      {c.organization?.name}
+                    </Link>
+                  </p>
 
                   {c.status === 'OPEN' ? (
                     <AlertDialog>
