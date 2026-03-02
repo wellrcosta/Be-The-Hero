@@ -1,4 +1,4 @@
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import { Logger as PinoLogger } from 'nestjs-pino';
@@ -20,12 +20,8 @@ async function bootstrap() {
 
   app.use(helmet());
 
-  // Structured logger (falls back to console if not configured)
-  try {
-    app.useLogger(app.get(PinoLogger));
-  } catch {
-    app.useLogger(new Logger());
-  }
+  // Structured logger
+  app.useLogger(app.get(PinoLogger));
 
   app.useGlobalPipes(
     new ValidationPipe({
