@@ -5,13 +5,8 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { apiFetch } from '@/lib/api';
 import { clearToken } from '@/lib/auth';
-
-type Me = {
-  email?: string;
-  roles?: string[];
-};
+import { fetchAndCacheMe, isAdmin, type Me } from '@/lib/me';
 
 export function TopNav() {
   const [me, setMe] = useState<Me | null>(null);
@@ -19,16 +14,16 @@ export function TopNav() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await apiFetch('/me');
-        const data = (await res.json()) as Me;
+        const data = await fetchAndCacheMe();
         setMe(data);
-      } catch (err) {
-        // ignore on login page
+      } catch {
+        // ignore (e.g. on login page)
       }
     })();
   }, []);
 
-  const roleLabel = me?.roles?.includes('ADMIN') ? 'ADMIN' : 'USER';
+  const admin = isAdmin(me);
+  const roleLabel = admin ? 'ADMIN' : 'USER';
 
   return (
     <div className="w-full border-b bg-background">
@@ -47,15 +42,19 @@ export function TopNav() {
           <Button asChild variant="secondary">
             <Link href="/organizations">Organizations</Link>
           </Button>
-          <Button asChild variant="secondary">
-            <Link href="/organizations/new">New Organization</Link>
-          </Button>
+          {admin ? (
+            <Button asChild variant="secondary">
+              <Link href="/organizations/new">New Organization</Link>
+            </Button>
+          ) : null}
           <Button asChild variant="secondary">
             <Link href="/cases">Cases</Link>
           </Button>
-          <Button asChild variant="secondary">
-            <Link href="/cases/new">New Case</Link>
-          </Button>
+          {admin ? (
+            <Button asChild variant="secondary">
+              <Link href="/cases/new">New Case</Link>
+            </Button>
+          ) : null}
           <Button asChild variant="outline">
             <Link href="/api/docs" target="_blank">
               API Docs
