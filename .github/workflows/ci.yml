@@ -56,3 +56,15 @@ jobs:
         run: |
           pnpm --filter api exec prisma migrate deploy
           pnpm --filter api test:e2e
+
+      - name: API smoke (bash)
+        env:
+          DATABASE_URL: postgresql://be_the_hero:be_the_hero@localhost:5432/be_the_hero
+          JWT_SECRET: test-secret
+          EMAIL: admin@example.com
+          PASSWORD: admin123
+          API_URL: http://localhost:3000
+        run: |
+          pnpm --filter api exec prisma migrate deploy
+          pnpm --filter api exec prisma db seed
+          ./scripts/smoke.sh
