@@ -94,3 +94,4 @@ apps/api/src/generated
 apps/*/.env
 apps/*/.env
 apps/*/.env
+.DS_Store
