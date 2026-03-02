@@ -26,6 +26,9 @@ export function TopNav() {
             <Link href="/organizations/new">New Organization</Link>
           </Button>
           <Button asChild variant="secondary">
+            <Link href="/cases">Cases</Link>
+          </Button>
+          <Button asChild variant="secondary">
             <Link href="/cases/new">New Case</Link>
           </Button>
           <Button asChild variant="outline">
