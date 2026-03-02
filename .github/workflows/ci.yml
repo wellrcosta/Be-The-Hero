@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: be_the_hero
+          POSTGRES_PASSWORD: be_the_hero
+          POSTGRES_DB: be_the_hero
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U be_the_hero -d be_the_hero"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install pnpm
+        run: npm i -g pnpm@10
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: API e2e
+        env:
+          DATABASE_URL: postgresql://be_the_hero:be_the_hero@localhost:5432/be_the_hero
+          JWT_SECRET: test-secret
+          NODE_OPTIONS: --experimental-vm-modules
+        run: |
+          pnpm --filter api exec prisma migrate deploy
+          pnpm --filter api test:e2e
+
+      - name: API smoke (bash)
+        env:
+          DATABASE_URL: postgresql://be_the_hero:be_the_hero@localhost:5432/be_the_hero
+          JWT_SECRET: test-secret
+          EMAIL: admin@example.com
+          PASSWORD: admin123
+          API_URL: http://localhost:3000
+        run: |
+          pnpm --filter api exec prisma migrate deploy
+          pnpm --filter api exec prisma db seed
+          ./scripts/smoke.sh
