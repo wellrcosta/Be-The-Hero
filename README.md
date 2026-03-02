@@ -69,3 +69,25 @@ pnpm --filter api tokens:cleanup
 ## Notas
 
 - O CI está configurado para rodar em PR e `workflow_dispatch`.
+
+## Mobile (Expo)
+
+O app mobile fica em `./mobile` (Expo).
+
+### Rodar (dev)
+
+> Importante: no celular/emulador, `localhost` aponta para o próprio device.
+> Use o IP da VM na rede local.
+
+```bash
+cd mobile
+
+export EXPO_PUBLIC_API_URL=http://192.168.x.x:3000
+npm install
+npm start
+```
+
+Auth no mobile:
+- envia `x-client: mobile`
+- recebe `refresh_token` no body e armazena com `expo-secure-store`
+- em `401`, tenta `POST /auth/refresh` e re-tenta a request 1x
