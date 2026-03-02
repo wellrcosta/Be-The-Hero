@@ -13,6 +13,11 @@ enum Role {
   ADMIN
 }
 
+enum CaseStatus {
+  OPEN
+  CLOSED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -20,4 +25,31 @@ model User {
   roles        Role[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  city      String?
+  state     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  cases     Case[]
+}
+
+model Case {
+  id             String       @id @default(cuid())
+  title          String
+  description    String
+  valueCents     Int
+  status         CaseStatus   @default(OPEN)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
