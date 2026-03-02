@@ -53,8 +53,14 @@ export default function HomePage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Cases</h1>
         <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/organizations/new">New Organization</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/cases/new">New Case</Link>
+          </Button>
           <Button asChild variant="outline">
-            <Link href="http://localhost:3000/docs" target="_blank">
+            <Link href="/api/docs" target="_blank">
               API Docs
             </Link>
           </Button>
