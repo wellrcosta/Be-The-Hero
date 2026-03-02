@@ -1,22 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-
-function parseMoneyToCents(value: string): number {
-  // Accept "10", "10.5", "10.50", "10,50".
-  const normalized = value.trim().replace(',', '.');
-  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) {
-    throw new BadRequestException('Invalid money value');
-  }
-
-  const [intPart, decPart = ''] = normalized.split('.');
-  const cents = Number(intPart) * 100 + Number((decPart + '00').slice(0, 2));
-
-  if (!Number.isFinite(cents)) {
-    throw new BadRequestException('Invalid money value');
-  }
-
-  return cents;
-}
+import { parseMoneyToCents } from '../common/money';
 
 @Injectable()
 export class CasesService {
@@ -28,7 +12,12 @@ export class CasesService {
     value: string;
     organizationId: string;
   }) {
-    const valueCents = parseMoneyToCents(data.value);
+    let valueCents: number;
+    try {
+      valueCents = parseMoneyToCents(data.value);
+    } catch {
+      throw new BadRequestException('Invalid money value');
+    }
 
     return this.prisma.case.create({
       data: {
@@ -40,7 +29,23 @@ export class CasesService {
     });
   }
 
-  findMany() {
-    return this.prisma.case.findMany({ include: { organization: true } });
+  findMany(params: { skip?: number; take?: number }) {
+    const { skip, take } = params;
+    return this.prisma.case.findMany({
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+      include: { organization: true },
+    });
+  }
+
+  async updateStatus(id: string, status: 'OPEN' | 'CLOSED') {
+    const existing = await this.prisma.case.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Case not found');
+
+    return this.prisma.case.update({
+      where: { id },
+      data: { status },
+    });
   }
 }

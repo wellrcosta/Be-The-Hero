@@ -15,7 +15,12 @@ export class OrganizationsService {
     return this.prisma.organization.create({ data });
   }
 
-  findMany() {
-    return this.prisma.organization.findMany();
+  findMany(params: { skip?: number; take?: number }) {
+    const { skip, take } = params;
+    return this.prisma.organization.findMany({
+      skip,
+      take,
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }
