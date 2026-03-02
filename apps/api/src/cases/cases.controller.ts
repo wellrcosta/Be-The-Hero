@@ -7,7 +7,8 @@ import { CasesService } from './cases.service';
 class CreateCaseDto {
   title!: string;
   description!: string;
-  valueCents!: number;
+  /** Monetary value in major units (e.g. "10.50" for BRL). */
+  value!: string;
   organizationId!: string;
 }
 
@@ -19,12 +20,21 @@ export class CasesController {
   @Roles('ADMIN')
   @Post()
   create(@Body() dto: CreateCaseDto) {
-    return this.cases.create(dto);
+    return this.cases.create({
+      title: dto.title,
+      description: dto.description,
+      value: dto.value,
+      organizationId: dto.organizationId,
+    });
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findMany() {
-    return this.cases.findMany();
+  async findMany() {
+    const rows = await this.cases.findMany();
+    return rows.map((c) => ({
+      ...c,
+      value: (c.valueCents / 100).toFixed(2),
+    }));
   }
 }
