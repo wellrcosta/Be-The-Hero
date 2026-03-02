@@ -2,6 +2,8 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { parseMoneyToCents } from '../common/money';
 
+export type CaseStatus = 'OPEN' | 'CLOSED';
+
 @Injectable()
 export class CasesService {
   constructor(private prisma: PrismaService) {}
@@ -29,17 +31,32 @@ export class CasesService {
     });
   }
 
-  findMany(params: { skip?: number; take?: number }) {
-    const { skip, take } = params;
-    return this.prisma.case.findMany({
-      skip,
-      take,
-      orderBy: { createdAt: 'desc' },
-      include: { organization: true },
-    });
+  async findMany(params: { skip?: number; take?: number; status?: CaseStatus }) {
+    const { skip, take, status } = params;
+    const where = status ? { status } : {};
+
+    const [items, total] = await Promise.all([
+      this.prisma.case.findMany({
+        skip,
+        take,
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: { organization: true },
+      }),
+      this.prisma.case.count({ where }),
+    ]);
+
+    return {
+      items,
+      page: {
+        skip: skip ?? 0,
+        take: take ?? items.length,
+        total,
+      },
+    };
   }
 
-  async updateStatus(id: string, status: 'OPEN' | 'CLOSED') {
+  async updateStatus(id: string, status: CaseStatus) {
     const existing = await this.prisma.case.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Case not found');
 

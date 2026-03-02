@@ -15,12 +15,25 @@ export class OrganizationsService {
     return this.prisma.organization.create({ data });
   }
 
-  findMany(params: { skip?: number; take?: number }) {
+  async findMany(params: { skip?: number; take?: number }) {
     const { skip, take } = params;
-    return this.prisma.organization.findMany({
-      skip,
-      take,
-      orderBy: { createdAt: 'desc' },
-    });
+
+    const [items, total] = await Promise.all([
+      this.prisma.organization.findMany({
+        skip,
+        take,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.organization.count(),
+    ]);
+
+    return {
+      items,
+      page: {
+        skip: skip ?? 0,
+        take: take ?? items.length,
+        total,
+      },
+    };
   }
 }

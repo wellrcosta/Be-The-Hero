@@ -1,4 +1,5 @@
 import { clearToken, getToken } from './auth';
+import { getErrorMessage } from './api-error';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 
@@ -22,8 +23,8 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   }
 
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`API error ${res.status}: ${body}`);
+    const msg = await getErrorMessage(res);
+    throw new Error(`API error ${res.status}: ${msg}`);
   }
 
   return res;

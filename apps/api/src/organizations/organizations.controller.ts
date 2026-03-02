@@ -54,12 +54,16 @@ export class OrganizationsController {
     return serializeOrganization(created);
   }
 
+  @Roles('ADMIN')
   @Get()
-  @ApiOperation({ summary: 'List organizations (JWT required)' })
+  @ApiOperation({ summary: 'List organizations (ADMIN)' })
   @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
   @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
   async findMany(@Query() q: PaginationQuery) {
-    const rows = await this.orgs.findMany({ skip: q.skip, take: q.take });
-    return rows.map(serializeOrganization);
+    const res = await this.orgs.findMany({ skip: q.skip, take: q.take });
+    return {
+      ...res,
+      items: res.items.map(serializeOrganization),
+    };
   }
 }

@@ -101,10 +101,11 @@ describe('API (e2e)', () => {
       .set('authorization', `Bearer ${token}`)
       .expect(200);
 
-    expect(Array.isArray(listRes.body)).toBe(true);
-    expect(listRes.body.length).toBe(1);
+    expect(Array.isArray(listRes.body.items)).toBe(true);
+    expect(listRes.body.items.length).toBe(1);
+    expect(listRes.body.page.total).toBeGreaterThanOrEqual(1);
 
-    const caseId: string = listRes.body[0].id;
+    const caseId: string = listRes.body.items[0].id;
 
     const statusRes = await request(app.getHttpServer())
       .patch(`/cases/${caseId}/status`)

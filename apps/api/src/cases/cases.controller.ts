@@ -5,6 +5,7 @@ import { IsIn, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validato
 import { Roles } from '../auth/roles.decorator';
 import { serializeCase, serializeOrganization } from '../common/serializers';
 import { CasesService } from './cases.service';
+import type { CaseStatus } from './cases.service';
 
 class CreateCaseDto {
   @IsString()
@@ -15,7 +16,7 @@ class CreateCaseDto {
   @IsNotEmpty()
   description!: string;
 
-  /** Monetary value in major units (e.g. 10.50 for BRL). */
+  /** Monetary value in major units (e.g. "10.50" for BRL). */
   @IsString()
   @IsNotEmpty()
   value!: string;
@@ -28,10 +29,10 @@ class CreateCaseDto {
 class UpdateCaseStatusDto {
   @IsString()
   @IsIn(['OPEN', 'CLOSED'])
-  status!: 'OPEN' | 'CLOSED';
+  status!: CaseStatus;
 }
 
-class PaginationQuery {
+class CasesQuery {
   @IsOptional()
   @Type(() => Number)
   @Min(0)
@@ -42,6 +43,10 @@ class PaginationQuery {
   @Min(1)
   @Max(100)
   take?: number;
+
+  @IsOptional()
+  @IsIn(['OPEN', 'CLOSED'])
+  status?: CaseStatus;
 }
 
 @ApiTags('Cases')
@@ -62,13 +67,21 @@ export class CasesController {
   @ApiOperation({ summary: 'List cases (JWT required)' })
   @ApiQuery({ name: 'skip', required: false, type: Number, example: 0 })
   @ApiQuery({ name: 'take', required: false, type: Number, example: 20 })
-  async findMany(@Query() q: PaginationQuery) {
-    const rows = await this.cases.findMany({ skip: q.skip, take: q.take });
+  @ApiQuery({ name: 'status', required: false, enum: ['OPEN', 'CLOSED'] })
+  async findMany(@Query() q: CasesQuery) {
+    const res = await this.cases.findMany({
+      skip: q.skip,
+      take: q.take,
+      status: q.status,
+    });
 
-    return rows.map((c) => ({
-      ...serializeCase(c),
-      organization: serializeOrganization(c.organization),
-    }));
+    return {
+      ...res,
+      items: res.items.map((c) => ({
+        ...serializeCase(c),
+        organization: serializeOrganization(c.organization),
+      })),
+    };
   }
 
   @Roles('ADMIN')
