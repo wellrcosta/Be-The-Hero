@@ -6,6 +6,12 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
+  // Fail-fast in production
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is required in production');
+    if (!process.env.CORS_ORIGINS) throw new Error('CORS_ORIGINS is required in production');
+  }
+
   const app = await NestFactory.create(AppModule);
 
   const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3001,http://127.0.0.1:3001')

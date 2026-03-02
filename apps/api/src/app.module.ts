@@ -20,6 +20,9 @@ import { RequestIdInterceptor } from './common/logging.interceptor';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
+        // Use request header set by RequestIdInterceptor
+        genReqId: (req) => (req.headers['x-request-id'] as string) ?? undefined,
+        customProps: (req) => ({ requestId: req.headers['x-request-id'] }),
       },
     }),
     ThrottlerModule.forRoot([
