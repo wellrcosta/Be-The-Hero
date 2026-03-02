@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsIn, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Roles } from '../auth/roles.decorator';
 import { serializeCase, serializeOrganization } from '../common/serializers';
@@ -32,10 +33,12 @@ class UpdateCaseStatusDto {
 
 class PaginationQuery {
   @IsOptional()
+  @Type(() => Number)
   @Min(0)
   skip?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @Min(1)
   @Max(100)
   take?: number;

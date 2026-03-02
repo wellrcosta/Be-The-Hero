@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsEmail, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
 import { Roles } from '../auth/roles.decorator';
 import { serializeOrganization } from '../common/serializers';
@@ -28,10 +29,12 @@ class CreateOrganizationDto {
 
 class PaginationQuery {
   @IsOptional()
+  @Type(() => Number)
   @Min(0)
   skip?: number;
 
   @IsOptional()
+  @Type(() => Number)
   @Min(1)
   @Max(100)
   take?: number;
