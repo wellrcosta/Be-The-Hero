@@ -1,6 +1,11 @@
 services:
   postgres:
     image: postgres:17
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U be_the_hero -d be_the_hero"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
     environment:
       POSTGRES_USER: be_the_hero
       POSTGRES_PASSWORD: be_the_hero
@@ -21,11 +26,12 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./apps/api:/app/apps/api
       - ./node_modules:/app/node_modules
-    command: pnpm --filter api start:dev
+    command: /bin/sh -lc "pnpm --filter api exec prisma migrate dev --name init && pnpm --filter api start:dev"
 
   web:
     build:
