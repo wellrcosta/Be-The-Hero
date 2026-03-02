@@ -7,6 +7,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   const token = getToken();
 
   const res = await fetch(`${API_URL}${path}`, {
+    credentials: 'include',
     ...options,
     headers: {
       ...(options.headers ?? {}),
