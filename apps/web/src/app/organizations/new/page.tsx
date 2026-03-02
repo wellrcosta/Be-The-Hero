@@ -2,22 +2,24 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
-import { apiFetch } from '@/lib/api';
-import { getToken } from '@/lib/auth';
+import { TopNav } from '@/components/top-nav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { apiFetch } from '@/lib/api';
+import { getToken } from '@/lib/auth';
 
 export default function NewOrganizationPage() {
   const router = useRouter();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -29,7 +31,6 @@ export default function NewOrganizationPage() {
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       await apiFetch('/organizations', {
@@ -47,58 +48,62 @@ export default function NewOrganizationPage() {
         }),
       });
 
+      toast.success('Organization created');
       router.push('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      toast.error('Failed to create organization', {
+        description: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="p-6 flex justify-center">
-      <Card className="w-full max-w-lg">
-        <CardHeader>
-          <CardTitle>New Organization</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+    <div>
+      <TopNav />
+      <div className="p-6 flex justify-center">
+        <Card className="w-full max-w-lg">
+          <CardHeader>
+            <CardTitle>New Organization</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label>City</Label>
-                <Input value={city} onChange={(e) => setCity(e.target.value)} />
+                <Label>Name</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>State</Label>
-                <Input value={state} onChange={(e) => setState(e.target.value)} />
+                <Label>Email</Label>
+                <Input value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
-            </div>
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>City</Label>
+                  <Input value={city} onChange={(e) => setCity(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label>State</Label>
+                  <Input value={state} onChange={(e) => setState(e.target.value)} />
+                </div>
+              </div>
 
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => router.back()}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Creating...' : 'Create'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading ? 'Creating...' : 'Create'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
