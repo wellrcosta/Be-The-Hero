@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: be_the_hero
+      POSTGRES_PASSWORD: be_the_hero
+      POSTGRES_DB: be_the_hero
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://be_the_hero:be_the_hero@postgres:5432/be_the_hero
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./apps/api:/app/apps/api
+      - ./node_modules:/app/node_modules
+    command: pnpm --filter api start:dev
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+      PORT: "3001"
+    ports:
+      - "3001:3001"
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./node_modules:/app/node_modules
+    command: pnpm --filter web dev --port 3001
+
+volumes:
+  postgres_data:
