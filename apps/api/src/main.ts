@@ -1,15 +1,31 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import helmet from 'helmet';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3001,http://127.0.0.1:3001')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
+    origin: corsOrigins,
     credentials: true,
   });
+
+  app.use(helmet());
+
+  // Structured logger (falls back to console if not configured)
+  try {
+    app.useLogger(app.get(PinoLogger));
+  } catch {
+    app.useLogger(new Logger());
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({

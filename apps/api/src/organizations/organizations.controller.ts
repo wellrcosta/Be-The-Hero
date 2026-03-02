@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEmail, IsOptional, IsString, Max, Min, MinLength } from 'class-validator';
@@ -13,6 +13,29 @@ class CreateOrganizationDto {
 
   @IsEmail()
   email!: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  state?: string;
+}
+
+class UpdateOrganizationDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  name?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 
   @IsOptional()
   @IsString()
@@ -65,5 +88,30 @@ export class OrganizationsController {
       ...res,
       items: res.items.map(serializeOrganization),
     };
+  }
+
+  @Roles('ADMIN')
+  @Get(':id')
+  @ApiOperation({ summary: 'Get organization by id (ADMIN)' })
+  async findById(@Param('id') id: string) {
+    const org = await this.orgs.findById(id);
+    if (!org) throw new NotFoundException('Organization not found');
+    return serializeOrganization(org);
+  }
+
+  @Roles('ADMIN')
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update organization (ADMIN)' })
+  async update(@Param('id') id: string, @Body() dto: UpdateOrganizationDto) {
+    const updated = await this.orgs.update(id, dto);
+    return serializeOrganization(updated);
+  }
+
+  @Roles('ADMIN')
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete organization (ADMIN)' })
+  async remove(@Param('id') id: string) {
+    await this.orgs.remove(id);
+    return { ok: true };
   }
 }

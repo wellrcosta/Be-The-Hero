@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -35,5 +35,35 @@ export class OrganizationsService {
         total,
       },
     };
+  }
+
+  findById(id: string) {
+    return this.prisma.organization.findUnique({ where: { id } });
+  }
+
+  async update(
+    id: string,
+    data: {
+      name?: string;
+      email?: string;
+      phone?: string;
+      city?: string;
+      state?: string;
+    },
+  ) {
+    const existing = await this.findById(id);
+    if (!existing) throw new NotFoundException('Organization not found');
+
+    return this.prisma.organization.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async remove(id: string) {
+    const existing = await this.findById(id);
+    if (!existing) throw new NotFoundException('Organization not found');
+
+    await this.prisma.organization.delete({ where: { id } });
   }
 }

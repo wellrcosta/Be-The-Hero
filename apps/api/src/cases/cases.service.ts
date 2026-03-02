@@ -31,9 +31,17 @@ export class CasesService {
     });
   }
 
-  async findMany(params: { skip?: number; take?: number; status?: CaseStatus }) {
-    const { skip, take, status } = params;
-    const where = status ? { status } : {};
+  async findMany(params: {
+    skip?: number;
+    take?: number;
+    status?: CaseStatus;
+    organizationId?: string;
+  }) {
+    const { skip, take, status, organizationId } = params;
+
+    const where: any = {};
+    if (status) where.status = status;
+    if (organizationId) where.organizationId = organizationId;
 
     const [items, total] = await Promise.all([
       this.prisma.case.findMany({
@@ -56,6 +64,51 @@ export class CasesService {
     };
   }
 
+  findById(id: string) {
+    return this.prisma.case.findUnique({
+      where: { id },
+      include: { organization: true },
+    });
+  }
+
+  async update(
+    id: string,
+    data: {
+      title?: string;
+      description?: string;
+      value?: string;
+    },
+  ) {
+    const existing = await this.prisma.case.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Case not found');
+
+    const updateData: any = {
+      title: data.title,
+      description: data.description,
+    };
+
+    if (typeof data.value === 'string') {
+      try {
+        updateData.valueCents = parseMoneyToCents(data.value);
+      } catch {
+        throw new BadRequestException('Invalid money value');
+      }
+    }
+
+    return this.prisma.case.update({
+      where: { id },
+      data: updateData,
+      include: { organization: true },
+    });
+  }
+
+  async remove(id: string) {
+    const existing = await this.prisma.case.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Case not found');
+
+    await this.prisma.case.delete({ where: { id } });
+  }
+
   async updateStatus(id: string, status: CaseStatus) {
     const existing = await this.prisma.case.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Case not found');
@@ -63,6 +116,7 @@ export class CasesService {
     return this.prisma.case.update({
       where: { id },
       data: { status },
+      include: { organization: true },
     });
   }
 }

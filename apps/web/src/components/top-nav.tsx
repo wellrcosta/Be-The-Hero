@@ -1,22 +1,47 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { apiFetch } from '@/lib/api';
 import { clearToken } from '@/lib/auth';
 
+type Me = {
+  email?: string;
+  roles?: string[];
+};
+
 export function TopNav() {
-  const pathname = usePathname();
+  const [me, setMe] = useState<Me | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await apiFetch('/me');
+        const data = (await res.json()) as Me;
+        setMe(data);
+      } catch (err) {
+        // ignore on login page
+      }
+    })();
+  }, []);
+
+  const roleLabel = me?.roles?.includes('ADMIN') ? 'ADMIN' : 'USER';
 
   return (
     <div className="w-full border-b bg-background">
       <div className="mx-auto max-w-6xl flex items-center justify-between p-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Link href="/" className="font-semibold">
             Be The Hero
           </Link>
-          <span className="text-sm text-muted-foreground">{pathname}</span>
+          {me?.email ? (
+            <span className="text-sm text-muted-foreground">
+              {me.email} ({roleLabel})
+            </span>
+          ) : null}
         </div>
         <div className="flex gap-2">
           <Button asChild variant="secondary">
@@ -40,6 +65,7 @@ export function TopNav() {
             variant="destructive"
             onClick={() => {
               clearToken();
+              toast.success('Logged out');
               window.location.href = '/login';
             }}
           >
