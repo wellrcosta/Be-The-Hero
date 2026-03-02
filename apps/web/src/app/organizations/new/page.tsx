@@ -37,7 +37,6 @@ export default function NewOrganizationPage() {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name,

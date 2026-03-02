@@ -38,7 +38,6 @@ export default function NewCasePage() {
     (async () => {
       try {
         const res = await apiFetch('/organizations?skip=0&take=100', {
-          headers: { authorization: `Bearer ${token}` },
         });
         const data = (await res.json()) as Organization[];
         setOrgs(data);
@@ -66,7 +65,6 @@ export default function NewCasePage() {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
-          authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title,
