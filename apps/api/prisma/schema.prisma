@@ -18,11 +18,23 @@ enum CaseStatus {
   CLOSED
 }
 
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
+  emailNorm    String   @unique
   passwordHash String
   roles        Role[]
+  status       UserStatus @default(ACTIVE)
+
+  failedLoginAttempts Int      @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
