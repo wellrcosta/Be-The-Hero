@@ -90,3 +90,7 @@ typings/
 # Build outputs
 apps/*/dist
 apps/*/.next
+apps/api/src/generated
+apps/*/.env
+apps/*/.env
+apps/*/.env
