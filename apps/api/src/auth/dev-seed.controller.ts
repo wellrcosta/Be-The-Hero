@@ -1,9 +1,15 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 import * as bcrypt from 'bcrypt';
+import { Public } from './public.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 
 class SeedAdminDto {
+  @IsEmail()
   email!: string;
+
+  @IsString()
+  @MinLength(6)
   password!: string;
 }
 
@@ -11,6 +17,7 @@ class SeedAdminDto {
 export class DevSeedController {
   constructor(private prisma: PrismaService) {}
 
+  @Public()
   @Post('seed-admin')
   async seedAdmin(@Body() dto: SeedAdminDto) {
     if (process.env.NODE_ENV === 'production') {

@@ -1,14 +1,24 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { Roles } from '../auth/roles.decorator';
-import { RolesGuard } from '../auth/roles.guard';
 import { CasesService } from './cases.service';
 
 class CreateCaseDto {
+  @IsString()
+  @IsNotEmpty()
   title!: string;
+
+  @IsString()
+  @IsNotEmpty()
   description!: string;
-  /** Monetary value in major units (e.g. "10.50" for BRL). */
+
+  /** Monetary value in major units (e.g. 10.50 for BRL). */
+  @IsString()
+  @IsNotEmpty()
   value!: string;
+
+  @IsString()
+  @IsNotEmpty()
   organizationId!: string;
 }
 
@@ -16,7 +26,6 @@ class CreateCaseDto {
 export class CasesController {
   constructor(private cases: CasesService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Post()
   create(@Body() dto: CreateCaseDto) {
@@ -28,7 +37,6 @@ export class CasesController {
     });
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   async findMany() {
     const rows = await this.cases.findMany();

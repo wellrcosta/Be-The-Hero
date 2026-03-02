@@ -1,14 +1,26 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 import { Roles } from '../auth/roles.decorator';
-import { RolesGuard } from '../auth/roles.guard';
 import { OrganizationsService } from './organizations.service';
 
 class CreateOrganizationDto {
+  @IsString()
+  @MinLength(2)
   name!: string;
+
+  @IsEmail()
   email!: string;
+
+  @IsOptional()
+  @IsString()
   phone?: string;
+
+  @IsOptional()
+  @IsString()
   city?: string;
+
+  @IsOptional()
+  @IsString()
   state?: string;
 }
 
@@ -16,14 +28,12 @@ class CreateOrganizationDto {
 export class OrganizationsController {
   constructor(private orgs: OrganizationsService) {}
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Post()
   create(@Body() dto: CreateOrganizationDto) {
     return this.orgs.create(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   findMany() {
     return this.orgs.findMany();
