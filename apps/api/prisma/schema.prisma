@@ -18,13 +18,27 @@ enum CaseStatus {
   CLOSED
 }
 
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
+  id           String     @id @default(cuid())
+  email        String     @unique
+  emailNorm    String     @unique
   passwordHash String
   roles        Role[]
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  status       UserStatus @default(ACTIVE)
+
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+
+  refreshTokens RefreshToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Organization {
@@ -37,19 +51,37 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  cases     Case[]
+  cases Case[]
 }
 
 model Case {
-  id             String       @id @default(cuid())
-  title          String
-  description    String
-  valueCents     Int
-  status         CaseStatus   @default(OPEN)
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  valueCents  Int
+  status      CaseStatus @default(OPEN)
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
 
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RefreshToken {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
 }

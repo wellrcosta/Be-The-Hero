@@ -16,7 +16,9 @@ async function main() {
     }),
   });
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const emailNorm = email.toLowerCase();
+
+  const existing = await prisma.user.findUnique({ where: { emailNorm } });
   if (existing) {
     console.log(`Seed admin already exists: ${existing.id}`);
     return;
@@ -26,8 +28,10 @@ async function main() {
   const user = await prisma.user.create({
     data: {
       email,
+      emailNorm,
       passwordHash,
       roles: ['ADMIN'],
+      status: 'ACTIVE',
     },
   });
 

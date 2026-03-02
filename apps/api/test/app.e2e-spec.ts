@@ -53,7 +53,7 @@ describe('API (e2e)', () => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     await db.query(
-      'INSERT INTO "User" (id, email, "passwordHash", roles, "createdAt", "updatedAt") VALUES (gen_random_uuid()::text, $1, $2, ARRAY[\'ADMIN\']::"Role"[], NOW(), NOW());',
+      'INSERT INTO "User" (id, email, "emailNorm", "passwordHash", roles, status, "createdAt", "updatedAt") VALUES (gen_random_uuid()::text, $1, lower($1), $2, ARRAY[\'ADMIN\']::"Role"[], \'ACTIVE\'::"UserStatus", NOW(), NOW());',
       [email, passwordHash],
     );
 
