@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiFetch } from '@/lib/api';
+import { getCachedMe, isAdmin } from '@/lib/me';
 
 type Organization = {
   id: string;
@@ -44,6 +45,9 @@ export default function OrganizationDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 
+  const me = getCachedMe();
+  const admin = isAdmin(me);
+
   const [org, setOrg] = useState<Organization | null>(null);
   const [cases, setCases] = useState<CaseItem[]>([]);
 
@@ -53,7 +57,7 @@ export default function OrganizationDetailPage() {
       setOrg((await res.json()) as Organization);
 
       const casesRes = await apiFetch(`/cases?skip=0&take=50&organizationId=${id}`);
-      const casesData = (await casesRes.json()) as Page<any>;
+      const casesData = (await casesRes.json()) as Page<CaseItem>;
       setCases(casesData.items);
     } catch (err) {
       toast.error('Failed to load organization', {
@@ -85,28 +89,30 @@ export default function OrganizationDetailPage() {
       <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Organization</h1>
-          <div className="flex gap-2">
-            <Button asChild variant="secondary">
-              <Link href={`/organizations/${id}/edit`}>Edit</Link>
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">Delete</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete organization?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete the organization.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={deleteOrg}>Confirm</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+          {admin ? (
+            <div className="flex gap-2">
+              <Button asChild variant="secondary">
+                <Link href={`/organizations/${id}/edit`}>Edit</Link>
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">Delete</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete organization?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete the organization.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteOrg}>Confirm</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          ) : null}
         </div>
 
         {org ? (

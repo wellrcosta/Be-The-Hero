@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { apiFetch } from '@/lib/api';
+import { getCachedMe, isAdmin } from '@/lib/me';
 
 type CaseItem = {
   id: string;
@@ -35,6 +36,9 @@ export default function CaseDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const id = params.id;
+
+  const me = getCachedMe();
+  const admin = isAdmin(me);
 
   const [item, setItem] = useState<CaseItem | null>(null);
 
@@ -88,37 +92,39 @@ export default function CaseDetailPage() {
       <div className="p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold">Case</h1>
-          <div className="flex gap-2">
-            <Button asChild variant="secondary">
-              <Link href={`/cases/${id}/edit`}>Edit</Link>
-            </Button>
-            {item?.status === 'OPEN' ? (
-              <Button variant="outline" onClick={() => updateStatus('CLOSED')}>
-                Close
+          {admin ? (
+            <div className="flex gap-2">
+              <Button asChild variant="secondary">
+                <Link href={`/cases/${id}/edit`}>Edit</Link>
               </Button>
-            ) : (
-              <Button variant="outline" onClick={() => updateStatus('OPEN')}>
-                Reopen
-              </Button>
-            )}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive">Delete</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete case?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete the case.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={deleteCase}>Confirm</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
+              {item?.status === 'OPEN' ? (
+                <Button variant="outline" onClick={() => updateStatus('CLOSED')}>
+                  Close
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={() => updateStatus('OPEN')}>
+                  Reopen
+                </Button>
+              )}
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">Delete</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete case?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete the case.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={deleteCase}>Confirm</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          ) : null}
         </div>
 
         {item ? (
