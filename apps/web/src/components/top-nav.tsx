@@ -20,6 +20,9 @@ export function TopNav() {
         </div>
         <div className="flex gap-2">
           <Button asChild variant="secondary">
+            <Link href="/organizations">Organizations</Link>
+          </Button>
+          <Button asChild variant="secondary">
             <Link href="/organizations/new">New Organization</Link>
           </Button>
           <Button asChild variant="secondary">
