@@ -73,7 +73,7 @@ jobs:
 
       - name: API smoke (bash)
         env:
-          DATABASE_URL: postgresql://be_the_hero: be_the_hero@localhost:5432/be_the_hero
+          DATABASE_URL: postgresql://be_the_hero:be_the_hero@localhost:5432/be_the_hero
           JWT_SECRET: test-secret
           EMAIL: admin@example.com
           PASSWORD: admin123
