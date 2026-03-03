@@ -54,6 +54,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Prisma generate (api)
+        env:
+          DATABASE_URL: postgresql://be_the_hero:be_the_hero@localhost:5432/be_the_hero
         run: pnpm --filter api prisma:generate
 
       - name: Lint
