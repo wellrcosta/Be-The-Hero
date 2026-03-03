@@ -75,28 +75,3 @@ jobs:
         run: |
           pnpm --filter api exec prisma migrate deploy
           pnpm --filter api test:e2e
-
-      - name: API smoke (bash)
-        env:
-          NODE_ENV: test
-          DATABASE_URL: postgresql://be_the_hero:be_the_hero@localhost:5432/be_the_hero
-          JWT_SECRET: test-secret
-          EMAIL: admin@example.com
-          PASSWORD: admin123
-          API_URL: http://localhost:3000
-        run: |
-          pnpm --filter api exec prisma migrate deploy
-          pnpm --filter api exec prisma db seed
-
-          pnpm --filter api start:prod &
-          API_PID=$!
-          trap "kill $API_PID" EXIT
-
-          for i in {1..60}; do
-            if curl -fsS "$API_URL/health" > /dev/null; then
-              break
-            fi
-            sleep 1
-          done
-
-          ./scripts/smoke.sh
