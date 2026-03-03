@@ -1,56 +1,76 @@
-# Be The Hero (refactor v2)
+# Be The Hero
 
-Este repositório está sendo refatorado na branch `develop` para uma stack moderna:
+A full-stack reference implementation of the classic **Be The Hero** app, rebuilt with a modern, production-friendly stack:
 
-- API: NestJS + TypeScript + Prisma + PostgreSQL
-- Web: Next.js (App Router) + Tailwind + shadcn/ui
+- **API:** NestJS + TypeScript + Prisma + PostgreSQL
+- **Web:** Next.js (App Router) + Tailwind + shadcn/ui
+- **Mobile:** Expo (React Native) + TypeScript
 
-## Requisitos
+## Requirements
 
-- Docker + Docker Compose
-- Node.js + pnpm (apenas se for rodar fora do Docker)
+- Docker + Docker Compose (recommended)
+- Node.js + pnpm (only if you want to run outside Docker)
 
-## Subir o projeto (dev, com Docker)
+## Quick start (dev with Docker)
 
 ```bash
+# Make sure you are on the right branch
 git checkout develop
 
+# Start everything
 docker compose up -d --build
 ```
 
-### Acessos
+### URLs
 
 - Web: http://localhost:3001
 - API: http://localhost:3000
 - Swagger: http://localhost:3000/docs
 - Postgres: localhost:5432
 
-### Credenciais de dev (seed)
+## Default dev credentials (seed)
 
-Por padrão o seed cria um admin:
+The seed creates an admin user by default:
 
-- **email:** `admin@example.com`
-- **password:** `admin123`
+- email: `admin@example.com`
+- password: `admin123`
 
-> Você pode sobrescrever via env:
-> `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`.
+You can override using env vars:
+- `SEED_ADMIN_EMAIL`
+- `SEED_ADMIN_PASSWORD`
 
-## Auth (padrão production-friendly)
+## Authentication model
 
-- `POST /auth/login` → retorna `{ access_token }` e seta cookie httpOnly `refresh_token`
-- `POST /auth/refresh` → rotaciona refresh token (cookie) e retorna novo `{ access_token }`
-- `POST /auth/logout` → revoga o refresh token atual + limpa cookie
-- `POST /auth/logout-all` → revoga **todos** refresh tokens do usuário (JWT required)
+This project uses **short-lived access tokens** + **refresh tokens**.
 
-O front-end:
-- usa `Authorization: Bearer <access_token>`
-- em `401`, chama automaticamente `/auth/refresh` e re-tenta a request 1x
+### Web (browser)
 
-## Variáveis de ambiente
+- `POST /auth/login` → returns `{ access_token }` and sets an **httpOnly** `refresh_token` cookie
+- `POST /auth/refresh` → rotates the refresh token cookie and returns a new `{ access_token }`
+- `POST /auth/logout` → revokes current refresh token and clears cookie
+- `POST /auth/logout-all` → revokes **all** refresh tokens for the current user (JWT required)
 
-Veja `.env.example`.
+The Web client:
+- sends `Authorization: Bearer <access_token>`
+- on `401`, automatically calls `/auth/refresh` and retries the request once
 
-## Scripts úteis (fora do Docker)
+### Mobile (Expo)
+
+Mobile clients send `x-client: mobile`.
+
+- `POST /auth/login` → returns `{ access_token, refresh_token }`
+- `POST /auth/refresh` → returns `{ access_token, refresh_token }` (rotation)
+
+The mobile app stores tokens using `expo-secure-store` and retries once on `401`.
+
+## Environment variables
+
+See `.env.example`.
+
+Production hardening:
+- In `NODE_ENV=production`, the API requires: `JWT_SECRET`, `CORS_ORIGINS`, `REFRESH_TOKEN_PEPPER`.
+
+## Useful commands (outside Docker)
 
 ```bash
 pnpm install
@@ -60,34 +80,31 @@ pnpm build
 pnpm --filter api test:e2e
 ```
 
-### Cleanup de refresh tokens
+### Refresh token cleanup
 
 ```bash
 pnpm --filter api tokens:cleanup
 ```
 
-## Notas
+## Mobile (local dev)
 
-- O CI está configurado para rodar em PR e `workflow_dispatch`.
-
-## Mobile (Expo)
-
-O app mobile fica em `./mobile` (Expo).
-
-### Rodar (dev)
-
-> Importante: no celular/emulador, `localhost` aponta para o próprio device.
-> Use o IP da VM na rede local.
+> Important: on a real device/emulator, `localhost` points to the device itself.
+> Use the VM/LAN IP of your API.
 
 ```bash
 cd mobile
 
-export EXPO_PUBLIC_API_URL=http://192.168.x.x:3000
+export EXPO_PUBLIC_API_URL=http://192.168.1.171:3000
 npm install
 npm start
 ```
 
-Auth no mobile:
-- envia `x-client: mobile`
-- recebe `refresh_token` no body e armazena com `expo-secure-store`
-- em `401`, tenta `POST /auth/refresh` e re-tenta a request 1x
+## CI
+
+The GitHub Actions workflow validates:
+- install (lockfile)
+- prisma generate (api)
+- lint
+- typecheck
+- build
+- api e2e tests
