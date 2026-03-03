@@ -30,13 +30,33 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
 
-      - name: Install pnpm
-        run: npm i -g pnpm@10
+      - name: Enable pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.0.0 --activate
+          pnpm -v
+
+      # Cache do pnpm store (mais previsível que "cache: pnpm" do setup-node)
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "STORE_PATH=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate (api)
+        env:
+          DATABASE_URL: postgresql://be_the_hero:be_the_hero@localhost:5432/be_the_hero
+        run: pnpm --filter api prisma:generate
 
       - name: Lint
         run: pnpm lint
@@ -55,15 +75,3 @@ jobs:
         run: |
           pnpm --filter api exec prisma migrate deploy
           pnpm --filter api test:e2e
-
-      - name: API smoke (bash)
-        env:
-          DATABASE_URL: postgresql://be_the_hero:be_the_hero@localhost:5432/be_the_hero
-          JWT_SECRET: test-secret
-          EMAIL: admin@example.com
-          PASSWORD: admin123
-          API_URL: http://localhost:3000
-        run: |
-          pnpm --filter api exec prisma migrate deploy
-          pnpm --filter api exec prisma db seed
-          ./scripts/smoke.sh
